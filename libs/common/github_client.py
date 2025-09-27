@@ -1,4 +1,5 @@
 """Client helpers for interacting with GitHub App installations."""
+
 from __future__ import annotations
 
 import datetime as dt
@@ -48,7 +49,9 @@ class GitHubClient:
 
     def _get_installation_token(self) -> str:
         if self._installation_token and self._installation_token_expiry:
-            if self._installation_token_expiry > dt.datetime.utcnow() + dt.timedelta(minutes=1):
+            if self._installation_token_expiry > dt.datetime.utcnow() + dt.timedelta(
+                minutes=1
+            ):
                 return self._installation_token
 
         jwt_token = self._create_jwt()
@@ -65,16 +68,20 @@ class GitHubClient:
         self._installation_token = data.get("token")
         expires_at = data.get("expires_at")
         if expires_at:
-            self._installation_token_expiry = dt.datetime.fromisoformat(expires_at.replace("Z", "+00:00")).replace(
-                tzinfo=None
-            )
+            self._installation_token_expiry = dt.datetime.fromisoformat(
+                expires_at.replace("Z", "+00:00")
+            ).replace(tzinfo=None)
         else:
             self._installation_token_expiry = None
         if not self._installation_token:
-            raise RuntimeError("GitHub installation token response did not include a token")
+            raise RuntimeError(
+                "GitHub installation token response did not include a token"
+            )
         return self._installation_token
 
-    def create_issue_comment(self, owner: str, repo: str, pr_number: int, body: str) -> Dict[str, Any]:
+    def create_issue_comment(
+        self, owner: str, repo: str, pr_number: int, body: str
+    ) -> Dict[str, Any]:
         response = self._session.post(
             f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues/{pr_number}/comments",
             headers=self._auth_headers(),
@@ -108,4 +115,3 @@ class GitHubClient:
             timeout=15,
         )
         response.raise_for_status()
-

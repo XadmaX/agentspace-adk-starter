@@ -61,6 +61,7 @@ vertexai_module.generative_models = vertexai_generative
 # Basic requests module placeholder used for typing/imports
 requests_module = ensure_module("requests")
 if not hasattr(requests_module, "Session"):
+
     class _Session:  # pragma: no cover - only used to satisfy imports
         def __init__(self, *args, **kwargs):
             pass

@@ -1,4 +1,5 @@
 """Utilities for consistent structured logging across services."""
+
 from __future__ import annotations
 
 import json
@@ -64,5 +65,6 @@ def configure_json_logging(service_name: str) -> None:
     }
 
     logging.config.dictConfig(logging_config)
-    logging.getLogger("uvicorn").info("Logging configured", extra={"service": service_name})
-
+    logging.getLogger("uvicorn").info(
+        "Logging configured", extra={"service": service_name}
+    )

@@ -15,4 +15,3 @@ def test_readyz() -> None:
     response = client.get("/readyz")
     assert response.status_code == 200
     assert response.json()["status"] == "ready"
-

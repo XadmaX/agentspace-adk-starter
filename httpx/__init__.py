@@ -153,7 +153,9 @@ class Response:
 class BaseTransport:
     """Interface mirrored from httpx.BaseTransport."""
 
-    def handle_request(self, request: Request) -> Response:  # pragma: no cover - interface only
+    def handle_request(
+        self, request: Request
+    ) -> Response:  # pragma: no cover - interface only
         raise NotImplementedError
 
 

@@ -1,4 +1,5 @@
 """Shared Pydantic schemas mirroring Firestore collections."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -55,4 +56,3 @@ class TestRun(BaseModel):
     completed_at: datetime | None = None
     case_results: dict[str, str] = Field(default_factory=dict)
     executed_by: str | None = None
-

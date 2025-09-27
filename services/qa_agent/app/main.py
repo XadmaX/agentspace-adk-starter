@@ -1,4 +1,5 @@
 """Entry point for the QA agent FastAPI application."""
+
 from __future__ import annotations
 
 from fastapi import FastAPI
@@ -31,5 +32,6 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("services.qa_agent.app.main:app", host="0.0.0.0", port=8002, reload=True)
-
+    uvicorn.run(
+        "services.qa_agent.app.main:app", host="0.0.0.0", port=8002, reload=True
+    )

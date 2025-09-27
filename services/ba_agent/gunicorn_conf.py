@@ -1,4 +1,5 @@
 """Gunicorn configuration for the BA agent service."""
+
 from __future__ import annotations
 
 import multiprocessing

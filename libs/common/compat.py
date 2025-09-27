@@ -1,4 +1,5 @@
 """Compatibility helpers for third-party libraries."""
+
 from __future__ import annotations
 
 import inspect
@@ -24,7 +25,10 @@ def _patch_forward_ref_evaluate() -> None:
         return
 
     last_param = parameters[-1]
-    if last_param.kind is not inspect.Parameter.KEYWORD_ONLY or last_param.name != "recursive_guard":
+    if (
+        last_param.kind is not inspect.Parameter.KEYWORD_ONLY
+        or last_param.name != "recursive_guard"
+    ):
         return
 
     original = ForwardRef._evaluate
@@ -36,7 +40,9 @@ def _patch_forward_ref_evaluate() -> None:
             and "type_params" not in kwargs
         ):
             recursive_guard = args[0]
-            return original(self, globalns, localns, None, recursive_guard=recursive_guard)
+            return original(
+                self, globalns, localns, None, recursive_guard=recursive_guard
+            )
 
         return original(self, globalns, localns, *args, **kwargs)
 

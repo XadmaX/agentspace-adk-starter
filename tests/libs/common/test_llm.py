@@ -86,11 +86,7 @@ def test_generate_text_returns_model_text(fake_model):
 def test_generate_json_retries_on_timeout(fake_model):
     model, _ = fake_model
     model.queue_response(exceptions.DeadlineExceeded("timeout"))
-    model.queue_response(
-        FakeResponse(
-            text=json.dumps({"status": "ok"})
-        )
-    )
+    model.queue_response(FakeResponse(text=json.dumps({"status": "ok"})))
 
     client = VertexLLM(max_retries=2, retry_delay=0)
     payload = client.generate_json({"type": "object"}, "Prompt")

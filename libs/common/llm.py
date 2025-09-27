@@ -1,4 +1,5 @@
 """Vertex AI Gemini client with retry handling."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -41,8 +42,8 @@ class VertexAIClient:
         if isinstance(response, dict):
             return response
         return {"response": str(response)}
-      
-      
+
+
 import json
 import os
 import time
@@ -67,10 +68,19 @@ class VertexLLM:
         retry_delay: float = 2.0,
     ) -> None:
         self._model_name = model
-        self._project = project or os.getenv("PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
-        self._location = location or os.getenv("LOCATION") or os.getenv("GOOGLE_CLOUD_LOCATION") or "us-central1"
+        self._project = (
+            project or os.getenv("PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
+        )
+        self._location = (
+            location
+            or os.getenv("LOCATION")
+            or os.getenv("GOOGLE_CLOUD_LOCATION")
+            or "us-central1"
+        )
         if not self._project:
-            raise ValueError("VertexLLM requires PROJECT_ID or GOOGLE_CLOUD_PROJECT to be set")
+            raise ValueError(
+                "VertexLLM requires PROJECT_ID or GOOGLE_CLOUD_PROJECT to be set"
+            )
 
         self._timeout = timeout
         self._max_retries = max(1, max_retries)
@@ -119,7 +129,9 @@ class VertexLLM:
                 try:
                     return json.loads(text_value)
                 except json.JSONDecodeError as exc:
-                    raise ValueError("Vertex response did not contain valid JSON") from exc
+                    raise ValueError(
+                        "Vertex response did not contain valid JSON"
+                    ) from exc
             return response
 
         text_attr = getattr(response, "text", None)
@@ -182,6 +194,3 @@ class VertexLLM:
                             if part_text:
                                 return part_text
         return str(response)
-
-
-

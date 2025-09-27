@@ -1,4 +1,5 @@
 """Test environment shims."""
+
 from __future__ import annotations
 
 # Import the compatibility patches as early as possible so third-party

@@ -20,4 +20,3 @@ def test_healthz() -> None:
 def test_readyz() -> None:
     result = _call_route("/readyz")
     assert result["status"] == "ready"
-
