@@ -144,6 +144,14 @@ curl -X POST http://localhost:8000/build-context \
   }'
 ```
 
+## How to contribute changes
+
+1. Update the shared task list in [`docs/hub/TASKS.md`](docs/hub/TASKS.md) to claim or refresh ownership before starting work.
+2. Create a feature branch named after the task (for example, `task/<id>-short-summary`) from the latest `main` branch.
+3. Implement the change, using the helper Make targets such as `make lint`, `make test`, and `make run-local SERVICE=<name>` to validate your work.
+4. Open a pull request using `.github/pull_request_template.md`, filling in the checklist and linking back to the task entry.
+5. Merge once reviews pass and the checklist is satisfied, then loop back to update `docs/hub/TASKS.md` with the latest status.
+
 ## Development Container
 
 A preconfigured [Dev Container](https://containers.dev/) is available in
