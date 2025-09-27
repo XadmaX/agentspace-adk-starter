@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": "python3.11",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "services"
+  ]
+}

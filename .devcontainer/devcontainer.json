@@ -1,0 +1,11 @@
+{
+  "name": "agentspace-adk-starter",
+  "dockerFile": "Dockerfile",
+  "context": "..",
+  "postCreateCommand": "make setup",
+  "settings": {
+    "python.pythonPath": "/usr/local/bin/python"
+  },
+  "forwardPorts": [8000, 8001, 8002],
+  "remoteUser": "vscode"
+}
