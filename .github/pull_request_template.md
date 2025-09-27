@@ -1,11 +1,10 @@
-## Test and Lint Checklist
-- [ ] Linters executed
-- [ ] Tests executed
+## Task Reference
+- **Task ID:** `T#/INF#/DOC#`
+- **Task Link:** [Task Name](../docs/hub/TASKS.md#row-anchor) <!-- Replace with direct link to the task row -->
 
-## AGENTS.md Compliance Checklist
-- [ ] Reviewed AGENTS.md instructions for all modified files
-- [ ] Followed every applicable AGENTS.md requirement
-
-## Related Tasks
-List identifiers from `docs/hub/TASKS.md` in the format `TASK-###` or write `N/A`.
-- `TASK-###`
+## Verification Checklist
+- [ ] Lint passed
+- [ ] Type checks passed
+- [ ] Tests passed
+- [ ] AGENTS.md contracts respected
+- [ ] Schema changes have matching ADR in `DECISIONS.md`
