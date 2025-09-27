@@ -95,14 +95,10 @@ def test_generate_text_returns_model_text(fake_model):
 
     config_kwargs = call["config"].kwargs
     if config_kwargs.get("temperature") != 0.5:
-        pytest.fail(
-            "Expected generation config to use temperature=0.5"
-        )
+        pytest.fail("Expected generation config to use temperature=0.5")
 
     if config_kwargs.get("max_output_tokens") != 256:
-        pytest.fail(
-            "Expected generation config to use max_output_tokens=256"
-        )
+        pytest.fail("Expected generation config to use max_output_tokens=256")
 
 
 def test_generate_json_retries_on_timeout(fake_model):
