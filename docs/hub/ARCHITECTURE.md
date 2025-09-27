@@ -7,6 +7,12 @@ See [detailed architecture](../architecture.md) for comprehensive diagrams and A
 - **Dev Agent** (FastAPI) listens to `context.updated`/`pr.opened` topics, orchestrates pull-request automation, and updates review records.
 - **QA Agent** (FastAPI) subscribes to `test.run.requested`, manages test orchestration, and records run outcomes.
 
+## Agentspace Experience Gateway
+- **UX entry point**: Agentspace delivers a single-pane workflow surfaced through web components and embedded dashboards, routing users to agent-specific actions while enforcing identity and guardrails.
+- **IDE bridge**: GitHub Copilot (or comparable IDE co-pilot) handles inline code edits and draft generation inside the developer workspace, pulling context from Agentspace and pushing updates back through the Dev Agent APIs.
+- **Backend responsibilities**: FastAPI services own long-running orchestration, persistence, and integrations (Firestore, Pub/Sub, Jira, GitHub, TestRail) so the UX layer remains stateless and responsive.
+- **Orchestration**: A lightweight gateway service coordinates authentication tokens, request fan-out to role services, and event acknowledgements so Copilot sessions and Agentspace widgets reflect the same task state in near real time.
+
 ## Shared Libraries
 - `libs/common/google_clients.py` centralises Firestore, Pub/Sub, and Secret Manager client factories.
 - `libs/common/llm.py` and `schemas.py` wrap Vertex AI Gemini responses with JSON schemas (`ContextPack`, `Review`, `TestRun`).
