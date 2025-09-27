@@ -2,21 +2,19 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
 
 class ContextPack(BaseModel):
-    id: str
-    project_id: str
-    repo: str
-    pull_request: int
+    """Canonical representation of a generated context pack."""
+
+    issue_key: str
     summary: str = ""
-    risks: List[str] = Field(default_factory=list)
-    acceptance_criteria: List[str] = Field(default_factory=list)
-    related_links: List[str] = Field(default_factory=list)
-    embeddings: List[float] = Field(default_factory=list)
+    risks: list[str] = Field(default_factory=list)
+    acceptance: list[str] = Field(default_factory=list)
+    related_links: list[str] = Field(default_factory=list)
+    metadata: dict[str, str] = Field(default_factory=dict)
 
 
 class ReviewFinding(BaseModel):
@@ -24,9 +22,9 @@ class ReviewFinding(BaseModel):
     file_path: str
     summary: str
     severity: str
-    start_line: Optional[int] = None
-    end_line: Optional[int] = None
-    recommendation: Optional[str] = None
+    start_line: int | None = None
+    end_line: int | None = None
+    recommendation: str | None = None
 
 
 class Review(BaseModel):
@@ -36,16 +34,16 @@ class Review(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
-    author: Optional[str] = None
-    findings: List[ReviewFinding] = Field(default_factory=list)
-    overall_comment: Optional[str] = None
+    author: str | None = None
+    findings: list[ReviewFinding] = Field(default_factory=list)
+    overall_comment: str | None = None
 
 
 class TestCase(BaseModel):
     id: str
     title: str
-    steps: List[str] = Field(default_factory=list)
-    expected_results: List[str] = Field(default_factory=list)
+    steps: list[str] = Field(default_factory=list)
+    expected_results: list[str] = Field(default_factory=list)
     status: str = "draft"
 
 
@@ -54,7 +52,7 @@ class TestRun(BaseModel):
     name: str
     status: str
     created_at: datetime
-    completed_at: Optional[datetime] = None
-    case_results: Dict[str, str] = Field(default_factory=dict)
-    executed_by: Optional[str] = None
+    completed_at: datetime | None = None
+    case_results: dict[str, str] = Field(default_factory=dict)
+    executed_by: str | None = None
 

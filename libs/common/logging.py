@@ -5,16 +5,18 @@ import json
 import logging
 import logging.config
 import socket
-from datetime import datetime
-from typing import Any, Dict
+from datetime import UTC, datetime
+from typing import Any
 
 
 class JsonLogFormatter(logging.Formatter):
     """Format log records as JSON strings."""
 
     def format(self, record: logging.LogRecord) -> str:  # noqa: D401
-        log: Dict[str, Any] = {
-            "timestamp": datetime.utcfromtimestamp(record.created).isoformat() + "Z",
+        log: dict[str, Any] = {
+            "timestamp": datetime.fromtimestamp(record.created, UTC)
+            .isoformat()
+            .replace("+00:00", "Z"),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
