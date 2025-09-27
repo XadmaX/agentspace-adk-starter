@@ -1,0 +1,10 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '$PROJECT_ID/agentspace-adk-starter', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '$PROJECT_ID/agentspace-adk-starter']
+
+images:
+  - '$PROJECT_ID/agentspace-adk-starter'
+
+timeout: '1200s'
