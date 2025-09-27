@@ -8,10 +8,10 @@ See [detailed architecture](../architecture.md) for comprehensive diagrams and A
 - **QA Agent** (FastAPI) subscribes to `test.run.requested`, manages test orchestration, and records run outcomes.
 
 ## Agentspace Experience Gateway
-- **UX entry point**: Agentspace delivers a single-pane workflow surfaced through web components and embedded dashboards, routing users to agent-specific actions while enforcing identity and guardrails.
-- **IDE bridge**: GitHub Copilot (or comparable IDE co-pilot) handles inline code edits and draft generation inside the developer workspace, pulling context from Agentspace and pushing updates back through the Dev Agent APIs.
-- **Backend responsibilities**: FastAPI services own long-running orchestration, persistence, and integrations (Firestore, Pub/Sub, Jira, GitHub, TestRail) so the UX layer remains stateless and responsive.
-- **Orchestration**: A lightweight gateway service coordinates authentication tokens, request fan-out to role services, and event acknowledgements so Copilot sessions and Agentspace widgets reflect the same task state in near real time.
+- **Token exchange**: The gateway validates user identity, issues short-lived service tokens to the GitHub Copilot Coding Agent, and signs DEV role requests with scoped Firestore/Pub/Sub claims before dispatching work, logging each issuance for guardrail audits.
+- **Job orchestration**: DEV prompts are normalized into jobs, deduplicated against active Copilot runs, and enqueued; the gateway fans each job into the Copilot Coding Agent while updating backend services (Dev Agent, Firestore) with status checkpoints that track token spend and throttle when budgets tighten.
+- **Callback handling**: Streaming responses and completion callbacks from Copilot land on gateway webhooks, which reconcile job state, persist artifacts through backend APIs, and notify the UX shell via WebSocket updates, annotating which DEV-role sandbox testers initiated each run to capture context for follow-up.
+- **Backend coordination**: FastAPI services remain the system-of-record for orchestration, persistence, and integrations (Firestore, Pub/Sub, Jira, GitHub, TestRail), allowing the gateway to stay stateless while reflecting Copilot progress in near real time.
 
 ## Shared Libraries
 - `libs/common/google_clients.py` centralises Firestore, Pub/Sub, and Secret Manager client factories.

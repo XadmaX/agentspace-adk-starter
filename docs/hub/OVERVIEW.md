@@ -3,9 +3,10 @@
 ## Vision & Goals
 - **Purpose**: Deliver a cohesive agent operations hub that aligns business analysis, development, and quality automation around a shared workflow.
 - **Single front door**: Agentspace acts as the unified UX gateway where BA, DEV, and QA agents authenticate, review signals, and launch actions without tool hopping.
-- **Roles in scope**: Business Analyst (BA) orchestrates requirement intelligence, Developer (DEV) automates code delivery (with GitHub Copilot positioned as the inline coding co-agent), and Quality Analyst (QA) governs validation cycles.
+- **Request routing**: DEV-triggered Copilot jobs are queued in Agentspace, which stamps scoped credentials, forwards the job to the Copilot Coding Agent running in the managed services tier, and streams results back into the shared activity feed while respecting GCP free-tier throttles.
+- **Roles in scope**: Business Analyst (BA) orchestrates requirement intelligence, Developer (DEV) automates code delivery by invoking the server-executed GitHub Copilot Coding Agent through DEV-role jobs, and Quality Analyst (QA) governs validation cycles with Copilot outputs folded into their reviews.
 - **Infrastructure stack**: FastAPI services deployed with Gunicorn/Uvicorn, shared libraries in `libs/common`, Google Cloud Firestore for state, and Pub/Sub topics (`context.updated`, `pr.opened`, `test.run.requested`) for async coordination. See the [service architecture overview](../architecture.md#services) for details.
-- **Cloud guardrails**: Prototype deployments must stay within the Google Cloud Platform free tier (Firestore, Pub/Sub, Cloud Run) until scaling thresholds are proven and budget approvals are secured.
+- **Cloud guardrails**: Prototype deployments must stay within the Google Cloud Platform free tier (Firestore, Pub/Sub, Cloud Run) until scaling thresholds are proven; Copilot job dispatch from Agentspace is throttled when free-tier limits near exhaustion, queuing non-critical runs until budgets refresh.
 - **MVP outcomes**: Unified backlog triage, automated PR review prompts, and test run coordination surfaced through the hub so each role can act on current signals without switching tools.
 - **Exclusions for MVP**: Marketplace integrations, adaptive prompt marketplace tooling, and automated scaling playbooks remain post-MVP roadmap items.
 
