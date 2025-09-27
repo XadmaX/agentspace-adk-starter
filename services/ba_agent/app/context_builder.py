@@ -1,4 +1,5 @@
 """Core business logic for building a context pack."""
+
 from __future__ import annotations
 
 import json
@@ -62,7 +63,9 @@ class ContextBuilder:
 
     def build_context(self, request: BuildContextRequest) -> ContextPack:
         issue = self._jira_client.get_issue(request.issue_key)
-        fields: dict[str, Any] = issue.get("fields", {}) if isinstance(issue, dict) else {}
+        fields: dict[str, Any] = (
+            issue.get("fields", {}) if isinstance(issue, dict) else {}
+        )
 
         summary = self._extract_summary(fields)
         description = self._extract_description(fields)
@@ -136,10 +139,14 @@ class ContextBuilder:
         return [str(value)]
 
     def _persist_context(self, context_pack: ContextPack) -> None:
-        doc_ref = self._firestore.collection(self._collection).document(context_pack.issue_key)
+        doc_ref = self._firestore.collection(self._collection).document(
+            context_pack.issue_key
+        )
         doc_ref.set(context_pack.dict())
 
-    def _publish_event(self, context_pack: ContextPack, request: BuildContextRequest) -> None:
+    def _publish_event(
+        self, context_pack: ContextPack, request: BuildContextRequest
+    ) -> None:
         topic_path = self._normalise_topic(self._topic)
         event_payload = {
             "event": "context.updated",
@@ -163,4 +170,3 @@ __all__ = [
     "ContextBuilder",
     "LLM_SCHEMA",
 ]
-

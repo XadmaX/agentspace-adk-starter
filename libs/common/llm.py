@@ -1,4 +1,5 @@
 """Vertex AI Gemini client with retry handling."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -41,8 +42,8 @@ class VertexAIClient:
         if isinstance(response, dict):
             return response
         return {"response": str(response)}
-      
-      
+
+
 import json
 import os
 import time
@@ -67,10 +68,19 @@ class VertexLLM:
         retry_delay: float = 2.0,
     ) -> None:
         self._model_name = model
-        self._project = project or os.getenv("PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
-        self._location = location or os.getenv("LOCATION") or os.getenv("GOOGLE_CLOUD_LOCATION") or "us-central1"
+        self._project = (
+            project or os.getenv("PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
+        )
+        self._location = (
+            location
+            or os.getenv("LOCATION")
+            or os.getenv("GOOGLE_CLOUD_LOCATION")
+            or "us-central1"
+        )
         if not self._project:
-            raise ValueError("VertexLLM requires PROJECT_ID or GOOGLE_CLOUD_PROJECT to be set")
+            raise ValueError(
+                "VertexLLM requires PROJECT_ID or GOOGLE_CLOUD_PROJECT to be set"
+            )
 
         self._timeout = timeout
         self._max_retries = max(1, max_retries)
@@ -166,9 +176,9 @@ class VertexLLM:
                                 return part_text
         return str(response)
 
-      
-
-    def generate_json(self, prompt: str, schema: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
+    def generate_json(
+        self, prompt: str, schema: Dict[str, Any], **kwargs: Any
+    ) -> Dict[str, Any]:
         """Generate a JSON object that follows the provided ``schema``.
 
         This helper works with the lightweight ``json`` method above and
@@ -199,4 +209,3 @@ class VertexLLM:
                 raise ValueError("LLM response was not valid JSON") from exc
 
         raise ValueError("LLM response was not a JSON compatible structure")
-

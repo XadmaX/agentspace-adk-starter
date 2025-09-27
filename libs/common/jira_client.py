@@ -1,4 +1,5 @@
 """Minimal Jira REST client used by the agents."""
+
 from __future__ import annotations
 
 import os
@@ -74,4 +75,3 @@ class JiraClient:
 
 
 __all__ = ["JiraClient", "JiraConfig"]
-

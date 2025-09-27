@@ -1,4 +1,5 @@
 """Pub/Sub subscriber entrypoint for the BA agent."""
+
 from __future__ import annotations
 
 import json
@@ -49,7 +50,10 @@ def main() -> None:
         try:
             payload = json.loads(message.data.decode("utf-8"))
         except json.JSONDecodeError:
-            LOGGER.warning("Received invalid JSON payload", extra={"message_id": message.message_id})
+            LOGGER.warning(
+                "Received invalid JSON payload",
+                extra={"message_id": message.message_id},
+            )
             message.ack()
             return
 
@@ -71,7 +75,9 @@ def main() -> None:
         message.ack()
 
     LOGGER.info("Starting subscriber", extra={"subscription": subscription_name})
-    streaming_pull_future = subscriber_client.subscribe(subscription_name, callback=callback)
+    streaming_pull_future = subscriber_client.subscribe(
+        subscription_name, callback=callback
+    )
 
     try:
         streaming_pull_future.result()
@@ -82,4 +88,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

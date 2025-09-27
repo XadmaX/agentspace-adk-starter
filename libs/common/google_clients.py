@@ -1,4 +1,5 @@
 """Helpers for constructing Google Cloud clients used across services."""
+
 from __future__ import annotations
 
 import json
@@ -15,6 +16,7 @@ from google.cloud import (  # type: ignore[import-not-found]
 try:  # pragma: no cover - exercised indirectly by tests
     from pythonjsonlogger import jsonlogger
 except ModuleNotFoundError:  # pragma: no cover - fallback for offline environments
+
     class _FallbackJsonFormatter(logging.Formatter):
         """Minimal JSON formatter when python-json-logger is unavailable."""
 
@@ -104,4 +106,3 @@ def get_secret(name: str) -> str:
     client = _secret_manager_client()
     response = client.access_secret_version(name=resource_name)
     return response.payload.data.decode("utf-8")
-

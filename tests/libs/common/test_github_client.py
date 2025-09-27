@@ -87,10 +87,12 @@ def test_list_files_reuses_token(fake_jwt):
     session.register(
         "GET",
         f"{GITHUB_API_BASE}/repos/octo/demo/pulls/42/files",
-        FakeResponse([
-            {"filename": "app.py"},
-            {"filename": "README.md"},
-        ]),
+        FakeResponse(
+            [
+                {"filename": "app.py"},
+                {"filename": "README.md"},
+            ]
+        ),
     )
 
     client = GitHubClient(session=session)
