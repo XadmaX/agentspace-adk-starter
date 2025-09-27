@@ -2,6 +2,9 @@
 
 | ID | Title | Owner | Status | Priority | Links |
 | --- | --- | --- | --- | --- | --- |
-| T-101 | Define agent capability matrix | PM Team | In Progress | High | [Roadmap](./ROADMAP.md) |
-| T-102 | Implement prompt audit logging | Platform Eng | Planned | High | [ADR-0001](./DECISIONS.md) |
-| T-103 | Draft community support playbook | DevRel | Planned | Medium | [Changelog](./CHANGELOG.md) |
+| T1 | Define agent capability matrix | Maintainer | In Progress | High | [Roadmap](./ROADMAP.md) |
+| T2 | Implement prompt audit logging | Maintainer | Backlog | High | [ADR-0001](./DECISIONS.md) |
+| T3 | Draft community support playbook | Maintainer | Backlog | Medium | [Changelog](./CHANGELOG.md) |
+| T4 | Build MVP context pack ingestion | Maintainer | In Progress | High | [Roadmap](./ROADMAP.md) |
+| T5 | Wire automated PR review for MVP | Maintainer | Backlog | High | [Roadmap](./ROADMAP.md) |
+| T6 | Author QA regression tests for MVP | Maintainer | Backlog | High | [Roadmap](./ROADMAP.md) |
