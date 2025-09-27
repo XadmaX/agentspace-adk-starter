@@ -1,0 +1,165 @@
+name: Markdown Hub Notifications
+
+on:
+  pull_request:
+    types: [edited, synchronize]
+    paths:
+      - docs/hub/TASKS.md
+      - docs/hub/DECISIONS.md
+  pull_request_target:
+    paths:
+      - docs/hub/TASKS.md
+      - docs/hub/DECISIONS.md
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout base revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout head revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: head
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Analyze task status changes
+        id: analyze
+        run: |
+          python <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          base_file = Path('base/docs/hub/TASKS.md')
+          head_file = Path('head/docs/hub/TASKS.md')
+
+          def parse_tasks(path: Path):
+            if not path.exists():
+              return {}
+            records = {}
+            for line in path.read_text(encoding='utf-8').splitlines():
+              stripped = line.strip()
+              if not stripped.startswith('|') or stripped.startswith('| ---'):
+                continue
+              cells = [cell.strip() for cell in stripped.strip('|').split('|')]
+              if not cells or cells[0].upper() == 'ID':
+                continue
+              if len(cells) < 4:
+                continue
+              task_id = cells[0]
+              status = cells[3] or None
+              records[task_id] = status
+            return records
+
+          base_tasks = parse_tasks(base_file)
+          head_tasks = parse_tasks(head_file)
+
+          changes = []
+          for task_id in sorted(set(base_tasks) | set(head_tasks)):
+            old = base_tasks.get(task_id)
+            new = head_tasks.get(task_id)
+            if old == new:
+              continue
+            changes.append({"id": task_id, "old": old, "new": new})
+
+          comment_lines = ["### Task Status Updates"]
+          if changes:
+            comment_lines.extend([
+              "| Task ID | Base Status | Head Status |",
+              "| --- | --- | --- |",
+            ])
+            for change in changes:
+              comment_lines.append(
+                f"| {change['id']} | {change['old'] or '—'} | {change['new'] or '—'} |"
+              )
+          else:
+            comment_lines.append("No status changes detected.")
+
+          Path('comment.md').write_text("\n".join(comment_lines), encoding='utf-8')
+          Path('changes.json').write_text(json.dumps(changes), encoding='utf-8')
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as fh:
+            fh.write(f"has_changes={'true' if changes else 'false'}\n")
+          PY
+
+      - name: Update task status comment
+        if: github.event_name == 'pull_request_target'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('comment.md', 'utf8');
+            const tag = '<!-- md-notify -->';
+            const finalBody = `${tag}\n${body}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+
+            const existing = comments.find(comment => comment.body && comment.body.startsWith(tag));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body: finalBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: finalBody,
+              });
+            }
+
+      - name: Ensure hub label present
+        if: github.event_name == 'pull_request_target'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labelName = 'hub:changed';
+            const { owner, repo } = context.repo;
+            const pull_number = context.issue.number;
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner,
+              repo,
+              pull_number,
+              per_page: 100,
+            });
+
+            const docsTouched = files.some(file => file.filename.startsWith('docs/hub/'));
+            if (!docsTouched) {
+              return;
+            }
+
+            const labels = (context.payload.pull_request.labels || []).map(label => label.name);
+            if (!labels.includes(labelName)) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: pull_number,
+                labels: [labelName],
+              });
+            }
