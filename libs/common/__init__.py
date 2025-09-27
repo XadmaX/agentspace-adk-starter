@@ -1,7 +1,8 @@
 """Shared utilities for agentspace services."""
 
-from . import github_client, google_clients, jira_client, logging, schemas, testrail_client  # noqa: F401
-from .llm import VertexAIClient, VertexAIConfig  # noqa: F401
+import importlib
+from typing import Any
+
 
 __all__ = [
     "github_client",
@@ -10,6 +11,15 @@ __all__ = [
     "logging",
     "schemas",
     "testrail_client",
-    "VertexAIClient",
-    "VertexAIConfig",
+    "VertexLLM",
 ]
+
+
+def __getattr__(name: str) -> Any:  # pragma: no cover - simple lazy loader
+    if name == "VertexLLM":
+        from .llm import VertexLLM
+
+        return VertexLLM
+    if name in {"github_client", "google_clients", "jira_client", "logging", "schemas", "testrail_client"}:
+        return importlib.import_module(f"{__name__}.{name}")
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

@@ -61,6 +61,43 @@ docs/
    the `*_PUBSUB_SUBSCRIPTION` environment variables are configured (see
    `.env.example` files).
 
+## Config & Secrets
+
+Shared services pull configuration from environment variables. Populate these
+locally via `.env` files or a secret manager before running the agents.
+
+### Google Cloud
+
+- `PROJECT_ID` / `GOOGLE_CLOUD_PROJECT` – default project used for Firestore,
+  Pub/Sub, Secret Manager, and Vertex AI.
+- `LOCATION` – Vertex AI region (defaults to `us-central1`).
+- `LOG_LEVEL` – logging verbosity for shared utilities.
+
+### Vertex AI
+
+- The Vertex Gemini client initialises with the Google Cloud variables above
+  and uses Application Default Credentials. Ensure the runtime environment has
+  access to Vertex AI Generative AI APIs.
+
+### GitHub App
+
+- `GITHUB_APP_ID` – numeric App identifier.
+- `GITHUB_PRIVATE_KEY` – PEM encoded private key (`\n` newlines supported).
+- `GITHUB_INSTALLATION_ID` – installation ID for the target organisation or
+  repository.
+
+### Jira
+
+- `JIRA_BASE_URL` – e.g. `https://example.atlassian.net`.
+- `JIRA_USER` – Jira user/email used for authentication.
+- `JIRA_API_TOKEN` – API token created from Atlassian account settings.
+
+### TestRail
+
+- `TESTRAIL_BASE_URL` – e.g. `https://example.testrail.io`.
+- `TESTRAIL_USER` – TestRail username or email.
+- `TESTRAIL_API_KEY` – API key with permissions to create runs and results.
+
 ## Running with Docker
 
 1. Build the container image:

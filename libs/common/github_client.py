@@ -1,73 +1,111 @@
 """Client helpers for interacting with GitHub App installations."""
 from __future__ import annotations
 
-import logging
-import time
-from dataclasses import dataclass
+import datetime as dt
+import os
 from typing import Any, Dict, Optional
 
 import jwt  # type: ignore[import-not-found]
 import requests
 
-LOGGER = logging.getLogger(__name__)
+GITHUB_API_BASE = "https://api.github.com"
 
 
-@dataclass
-class GitHubAppConfig:
-    app_id: str
-    private_key: str
-    base_url: str = "https://api.github.com"
+class GitHubClient:
+    """GitHub App REST client that exchanges installation tokens on demand."""
 
+    def __init__(self, session: Optional[requests.Session] = None) -> None:
+        self._app_id = os.getenv("GITHUB_APP_ID")
+        self._private_key = os.getenv("GITHUB_PRIVATE_KEY")
+        self._installation_id = os.getenv("GITHUB_INSTALLATION_ID")
 
-class GitHubAppClient:
-    """Minimal GitHub App REST client."""
+        if not (self._app_id and self._private_key and self._installation_id):
+            raise ValueError(
+                "GITHUB_APP_ID, GITHUB_PRIVATE_KEY, and GITHUB_INSTALLATION_ID environment variables are required"
+            )
 
-    def __init__(self, config: GitHubAppConfig) -> None:
-        self._config = config
-        self._session = requests.Session()
+        self._private_key = self._private_key.replace("\\n", "\n")
+        self._session = session or requests.Session()
+        self._installation_token: Optional[str] = None
+        self._installation_token_expiry: Optional[dt.datetime] = None
 
     def _create_jwt(self) -> str:
-        now = int(time.time())
+        now = dt.datetime.utcnow()
         payload = {
-            "iat": now - 60,
-            "exp": now + (10 * 60),
-            "iss": self._config.app_id,
+            "iat": int((now - dt.timedelta(seconds=60)).timestamp()),
+            "exp": int((now + dt.timedelta(minutes=10)).timestamp()),
+            "iss": self._app_id,
         }
-        token = jwt.encode(payload, self._config.private_key, algorithm="RS256")
+        token = jwt.encode(payload, self._private_key, algorithm="RS256")
         return token if isinstance(token, str) else token.decode("utf-8")
 
-    def _headers(self, token: Optional[str] = None) -> Dict[str, str]:
-        headers = {"Accept": "application/vnd.github+json"}
-        if token:
-            headers["Authorization"] = f"Bearer {token}"
-        return headers
+    def _auth_headers(self) -> Dict[str, str]:
+        token = self._get_installation_token()
+        return {
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+        }
 
-    def get_installations(self) -> Dict[str, Any]:
-        jwt_token = self._create_jwt()
-        response = self._session.get(
-            f"{self._config.base_url}/app/installations",
-            headers=self._headers(jwt_token),
-            timeout=10,
-        )
-        response.raise_for_status()
-        return response.json()
+    def _get_installation_token(self) -> str:
+        if self._installation_token and self._installation_token_expiry:
+            if self._installation_token_expiry > dt.datetime.utcnow() + dt.timedelta(minutes=1):
+                return self._installation_token
 
-    def create_installation_token(self, installation_id: int) -> Dict[str, Any]:
         jwt_token = self._create_jwt()
         response = self._session.post(
-            f"{self._config.base_url}/app/installations/{installation_id}/access_tokens",
-            headers=self._headers(jwt_token),
-            timeout=10,
+            f"{GITHUB_API_BASE}/app/installations/{self._installation_id}/access_tokens",
+            headers={
+                "Authorization": f"Bearer {jwt_token}",
+                "Accept": "application/vnd.github+json",
+            },
+            timeout=15,
+        )
+        response.raise_for_status()
+        data = response.json()
+        self._installation_token = data.get("token")
+        expires_at = data.get("expires_at")
+        if expires_at:
+            self._installation_token_expiry = dt.datetime.fromisoformat(expires_at.replace("Z", "+00:00")).replace(
+                tzinfo=None
+            )
+        else:
+            self._installation_token_expiry = None
+        if not self._installation_token:
+            raise RuntimeError("GitHub installation token response did not include a token")
+        return self._installation_token
+
+    def create_issue_comment(self, owner: str, repo: str, pr_number: int, body: str) -> Dict[str, Any]:
+        response = self._session.post(
+            f"{GITHUB_API_BASE}/repos/{owner}/{repo}/issues/{pr_number}/comments",
+            headers=self._auth_headers(),
+            json={"body": body},
+            timeout=15,
         )
         response.raise_for_status()
         return response.json()
 
-    def get_pull_request(self, repo: str, pr_number: int, token: str) -> Dict[str, Any]:
+    def list_files_in_pr(self, owner: str, repo: str, pr_number: int) -> Any:
         response = self._session.get(
-            f"{self._config.base_url}/repos/{repo}/pulls/{pr_number}",
-            headers=self._headers(f"token {token}"),
-            timeout=10,
+            f"{GITHUB_API_BASE}/repos/{owner}/{repo}/pulls/{pr_number}/files",
+            headers=self._auth_headers(),
+            timeout=15,
         )
         response.raise_for_status()
         return response.json()
+
+    def dispatch_workflow(
+        self,
+        owner: str,
+        repo: str,
+        workflow_file: str,
+        ref: str,
+        inputs: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        response = self._session.post(
+            f"{GITHUB_API_BASE}/repos/{owner}/{repo}/actions/workflows/{workflow_file}/dispatches",
+            headers=self._auth_headers(),
+            json={"ref": ref, "inputs": inputs or {}},
+            timeout=15,
+        )
+        response.raise_for_status()
 
