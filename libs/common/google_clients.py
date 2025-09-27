@@ -1,14 +1,35 @@
 """Helpers for constructing Google Cloud clients used across services."""
 from __future__ import annotations
 
+import json
 import logging
 import os
-from functools import lru_cache
-from typing import Optional
+from functools import cache
 
-from google.cloud import firestore, pubsub_v1  # type: ignore[import-not-found]
-from google.cloud import secretmanager  # type: ignore[import-not-found]
-from pythonjsonlogger import jsonlogger
+from google.cloud import (  # type: ignore[import-not-found]
+    firestore,
+    pubsub_v1,
+    secretmanager,  # type: ignore[import-not-found]
+)
+
+try:  # pragma: no cover - exercised indirectly by tests
+    from pythonjsonlogger import jsonlogger
+except ModuleNotFoundError:  # pragma: no cover - fallback for offline environments
+    class _FallbackJsonFormatter(logging.Formatter):
+        """Minimal JSON formatter when python-json-logger is unavailable."""
+
+        def format(self, record: logging.LogRecord) -> str:
+            message = {
+                "level": record.levelname,
+                "name": record.name,
+                "message": record.getMessage(),
+            }
+            if record.exc_info:
+                message["exc_info"] = self.formatException(record.exc_info)
+            return json.dumps(message)
+
+    class jsonlogger:  # type: ignore[override]
+        JsonFormatter = _FallbackJsonFormatter
 
 
 def _log_level() -> int:
@@ -16,8 +37,8 @@ def _log_level() -> int:
     return getattr(logging, level_name, logging.INFO)
 
 
-@lru_cache(maxsize=None)
-def get_logger(name: Optional[str] = None) -> logging.Logger:
+@cache
+def get_logger(name: str | None = None) -> logging.Logger:
     """Return a JSON-formatted logger with level configured from the environment."""
 
     logger = logging.getLogger(name if name else "agentspace")
@@ -34,21 +55,21 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     return logger
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_pubsub() -> pubsub_v1.PublisherClient:
     """Return a cached Pub/Sub publisher client using default credentials."""
 
     return pubsub_v1.PublisherClient()
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_firestore() -> firestore.Client:
     """Return a cached Firestore client using application default credentials."""
 
     return firestore.Client()
 
 
-@lru_cache(maxsize=None)
+@cache
 def _secret_manager_client() -> secretmanager.SecretManagerServiceClient:
     return secretmanager.SecretManagerServiceClient()
 

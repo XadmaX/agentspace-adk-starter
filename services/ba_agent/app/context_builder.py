@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
-from google.cloud.firestore_v1 import Client as FirestoreClient  # type: ignore[import-not-found]
 from google.cloud import pubsub_v1  # type: ignore[import-not-found]
+from google.cloud.firestore_v1 import (
+    Client as FirestoreClient,  # type: ignore[import-not-found]
+)
 
 from libs.common.jira_client import JiraClient
 from libs.common.llm import VertexAIClient
@@ -16,7 +19,7 @@ from libs.common.schemas import ContextPack
 LOGGER = logging.getLogger(__name__)
 
 
-LLM_SCHEMA: Dict[str, Any] = {
+LLM_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
         "summary": {"type": "string"},
@@ -59,7 +62,7 @@ class ContextBuilder:
 
     def build_context(self, request: BuildContextRequest) -> ContextPack:
         issue = self._jira_client.get_issue(request.issue_key)
-        fields: Dict[str, Any] = issue.get("fields", {}) if isinstance(issue, dict) else {}
+        fields: dict[str, Any] = issue.get("fields", {}) if isinstance(issue, dict) else {}
 
         summary = self._extract_summary(fields)
         description = self._extract_description(fields)
@@ -82,10 +85,10 @@ class ContextBuilder:
 
         return context_pack
 
-    def _extract_summary(self, fields: Dict[str, Any]) -> str:
+    def _extract_summary(self, fields: dict[str, Any]) -> str:
         return str(fields.get("summary", ""))
 
-    def _extract_description(self, fields: Dict[str, Any]) -> str:
+    def _extract_description(self, fields: dict[str, Any]) -> str:
         description = fields.get("description")
         if isinstance(description, dict):
             # Jira's rich text format stores the content under ``content`` blocks.
@@ -94,8 +97,8 @@ class ContextBuilder:
             return ""
         return str(description)
 
-    def _flatten_jira_description(self, description: Dict[str, Any]) -> str:
-        def _collect_text(block: Dict[str, Any], parts: List[str]) -> None:
+    def _flatten_jira_description(self, description: dict[str, Any]) -> str:
+        def _collect_text(block: dict[str, Any], parts: list[str]) -> None:
             block_type = block.get("type")
             if block_type == "text":
                 text = block.get("text")
@@ -105,13 +108,13 @@ class ContextBuilder:
                 if isinstance(child, dict):
                     _collect_text(child, parts)
 
-        sections: List[str] = []
+        sections: list[str] = []
         for block in description.get("content", []) or []:
             if isinstance(block, dict):
                 _collect_text(block, sections)
         return "\n".join(section for section in sections if section)
 
-    def _call_llm(self, description: str, summary: str) -> Dict[str, Any]:
+    def _call_llm(self, description: str, summary: str) -> dict[str, Any]:
         prompt = (
             "You are an assistant that extracts structured information from Jira descriptions.\n"
             "Given the following summary and description, return JSON matching the schema "
@@ -125,7 +128,7 @@ class ContextBuilder:
             raise ValueError("LLM response must be a dictionary")
         return response
 
-    def _ensure_list(self, value: Optional[Any]) -> List[str]:
+    def _ensure_list(self, value: Any | None) -> list[str]:
         if isinstance(value, list):
             return [str(item) for item in value if item]
         if value is None:
