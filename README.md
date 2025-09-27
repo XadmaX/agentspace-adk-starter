@@ -123,7 +123,26 @@ locally via `.env` files or a secret manager before running the agents.
      --env-file services/ba_agent/.env.example \
      agentspace-adk-starter \
      python -m services.ba_agent.app.subscriber
-   ```
+  ```
+
+### Example requests
+
+Interact with the BA agent once it is running locally:
+
+```bash
+# Health checks
+curl http://localhost:8000/healthz
+curl http://localhost:8000/readyz
+
+# Build a context pack for PROJ-123
+curl -X POST http://localhost:8000/build-context \
+  -H "Content-Type: application/json" \
+  -d '{
+    "issueKey": "PROJ-123",
+    "sources": ["jira", "confluence"],
+    "force": false
+  }'
+```
 
 ## Development Container
 
