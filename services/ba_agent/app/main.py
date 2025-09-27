@@ -1,4 +1,5 @@
 """Entry point for the BA agent FastAPI application."""
+
 from __future__ import annotations
 
 from typing import Iterable
@@ -103,5 +104,6 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("services.ba_agent.app.main:app", host="0.0.0.0", port=8000, reload=True)
-
+    uvicorn.run(
+        "services.ba_agent.app.main:app", host="0.0.0.0", port=8000, reload=True
+    )

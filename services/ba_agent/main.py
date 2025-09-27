@@ -1,4 +1,5 @@
 """Standalone entry point for running the BA agent with Uvicorn."""
+
 from __future__ import annotations
 
 from services.ba_agent.app.main import app

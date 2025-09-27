@@ -1,4 +1,5 @@
 """Application module for the BA agent."""
+
 from __future__ import annotations
 
 # Ensure runtime compatibility patches are applied before other imports.

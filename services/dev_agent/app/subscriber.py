@@ -1,4 +1,5 @@
 """Pub/Sub subscriber entrypoint for the Dev agent."""
+
 from __future__ import annotations
 
 import logging
@@ -20,7 +21,9 @@ def main() -> None:
 
     subscription_name: Optional[str] = settings.pubsub_subscription
     if not subscription_name:
-        LOGGER.error("No subscription configured", extra={"service": settings.service_name})
+        LOGGER.error(
+            "No subscription configured", extra={"service": settings.service_name}
+        )
         return
 
     subscriber_client = pubsub_v1.SubscriberClient()
@@ -28,12 +31,17 @@ def main() -> None:
     def callback(message: Message) -> None:
         LOGGER.info(
             "Received message",
-            extra={"message_id": message.message_id, "data": message.data.decode("utf-8")},
+            extra={
+                "message_id": message.message_id,
+                "data": message.data.decode("utf-8"),
+            },
         )
         message.ack()
 
     LOGGER.info("Starting subscriber", extra={"subscription": subscription_name})
-    streaming_pull_future = subscriber_client.subscribe(subscription_name, callback=callback)
+    streaming_pull_future = subscriber_client.subscribe(
+        subscription_name, callback=callback
+    )
 
     try:
         streaming_pull_future.result()
@@ -44,4 +52,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

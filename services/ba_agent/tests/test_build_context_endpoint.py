@@ -1,4 +1,5 @@
 """Integration-style test for the /build-context endpoint."""
+
 from __future__ import annotations
 
 import asyncio
@@ -51,11 +52,17 @@ def test_build_context_endpoint_success() -> None:
         collection="context-packs",
     )
 
-    payload = {"issueKey": "PROJ-789", "sources": ["jira", "confluence"], "force": False}
+    payload = {
+        "issueKey": "PROJ-789",
+        "sources": ["jira", "confluence"],
+        "force": False,
+    }
     body = BuildContextBody.parse_obj(payload)
 
     app = create_app()
-    route = next(r for r in app.routes if isinstance(r, APIRoute) and r.path == "/build-context")
+    route = next(
+        r for r in app.routes if isinstance(r, APIRoute) and r.path == "/build-context"
+    )
 
     data: Dict[str, Any] = asyncio.run(route.endpoint(body, builder))
 
@@ -68,7 +75,9 @@ def test_build_context_endpoint_success() -> None:
     doc_ref.set.assert_called_once()
     publisher_client.publish.assert_called_once()
 
-    published_payload = json.loads(publisher_client.publish.call_args[0][1].decode("utf-8"))
+    published_payload = json.loads(
+        publisher_client.publish.call_args[0][1].decode("utf-8")
+    )
     assert published_payload["force"] is False
     assert published_payload["sources"] == ["jira", "confluence"]
 

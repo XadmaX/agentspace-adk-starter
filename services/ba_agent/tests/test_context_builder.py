@@ -1,4 +1,5 @@
 """Unit tests for the context builder orchestration."""
+
 from __future__ import annotations
 
 import json
@@ -58,7 +59,9 @@ def _builder(
 
 
 def test_build_context_persists_and_publishes(jira_issue: Dict[str, Any]) -> None:
-    builder, firestore_client, doc_ref, publisher_client, publish_future = _builder(jira_issue)
+    builder, firestore_client, doc_ref, publisher_client, publish_future = _builder(
+        jira_issue
+    )
 
     request = BuildContextRequest(issue_key="PROJ-123", sources=["jira"], force=True)
     context_pack = builder.build_context(request)
@@ -75,7 +78,9 @@ def test_build_context_persists_and_publishes(jira_issue: Dict[str, Any]) -> Non
 
     publish_future.result.assert_called_once()
 
-    published_payload = json.loads(publisher_client.publish.call_args[0][1].decode("utf-8"))
+    published_payload = json.loads(
+        publisher_client.publish.call_args[0][1].decode("utf-8")
+    )
     assert published_payload["issueKey"] == "PROJ-123"
     assert published_payload["force"] is True
     assert published_payload["event"] == "context.updated"
