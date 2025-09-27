@@ -114,11 +114,11 @@ class ContextBuilder:
     def _call_llm(self, description: str, summary: str) -> Dict[str, Any]:
         prompt = (
             "You are an assistant that extracts structured information from Jira descriptions.\n"
-            "Given the following summary and description, return JSON matching the schema" \
-            " with fields summary, risks[], acceptance[]."\n
-            "Summary: {summary}\n"
-            "Description:\n{description}"
-        ).format(summary=summary, description=description or "(empty)")
+            "Given the following summary and description, return JSON matching the schema "
+            "with fields summary, risks[], acceptance[].\n"
+            f"Summary: {summary}\n"
+            f"Description:\n{description or '(empty)'}"
+        )
 
         response = self._llm_client.generate_json(prompt, LLM_SCHEMA)
         if not isinstance(response, dict):  # pragma: no cover - defensive

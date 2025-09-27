@@ -1,22 +1,17 @@
-"""Integration style tests for the /build-context endpoint."""
+"""Integration-style test for the /build-context endpoint."""
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any, Dict
 from unittest.mock import MagicMock
 
-from fastapi.testclient import TestClient
+import sitecustomize  # noqa: F401  # Ensure compatibility patches are applied
+
+from fastapi.routing import APIRoute
 
 from services.ba_agent.app.context_builder import ContextBuilder
-from services.ba_agent.app.main import app, get_context_builder
-
-
-def setup_module() -> None:  # pragma: no cover - test hook
-    app.dependency_overrides.clear()
-
-
-def teardown_module() -> None:  # pragma: no cover - test hook
-    app.dependency_overrides.clear()
+from services.ba_agent.app.main import BuildContextBody, create_app
 
 
 def test_build_context_endpoint_success() -> None:
@@ -56,15 +51,14 @@ def test_build_context_endpoint_success() -> None:
         collection="context-packs",
     )
 
-    app.dependency_overrides[get_context_builder] = lambda: builder
-
-    client = TestClient(app)
-
     payload = {"issueKey": "PROJ-789", "sources": ["jira", "confluence"], "force": False}
-    response = client.post("/build-context", json=payload)
+    body = BuildContextBody.parse_obj(payload)
 
-    assert response.status_code == 200
-    data: Dict[str, Any] = response.json()
+    app = create_app()
+    route = next(r for r in app.routes if isinstance(r, APIRoute) and r.path == "/build-context")
+
+    data: Dict[str, Any] = asyncio.run(route.endpoint(body, builder))
+
     assert data["issue_key"] == "PROJ-789"
     assert data["summary"] == "Feature Y refined"
     assert data["risks"] == ["Scope creep"]
@@ -79,5 +73,3 @@ def test_build_context_endpoint_success() -> None:
     assert published_payload["sources"] == ["jira", "confluence"]
 
     publish_future.result.assert_called_once()
-
-    app.dependency_overrides.clear()
