@@ -112,6 +112,23 @@ class VertexLLM:
             response_schema=schema,
         )
         response = self._invoke_with_retry(prompt, config)
+
+        if isinstance(response, dict):
+            text_value = response.get("text")
+            if isinstance(text_value, str):
+                try:
+                    return json.loads(text_value)
+                except json.JSONDecodeError as exc:
+                    raise ValueError("Vertex response did not contain valid JSON") from exc
+            return response
+
+        text_attr = getattr(response, "text", None)
+        if isinstance(text_attr, str):
+            try:
+                return json.loads(text_attr)
+            except json.JSONDecodeError as exc:
+                raise ValueError("Vertex response did not contain valid JSON") from exc
+
         text = self._extract_text(response)
         try:
             return json.loads(text)
@@ -166,37 +183,5 @@ class VertexLLM:
                                 return part_text
         return str(response)
 
-      
 
-    def generate_json(self, prompt: str, schema: Dict[str, Any], **kwargs: Any) -> Dict[str, Any]:
-        """Generate a JSON object that follows the provided ``schema``.
-
-        This helper works with the lightweight ``json`` method above and
-        normalises the return value to a dictionary.  In production we would
-        pass ``schema`` to the Vertex AI client to enforce the structure, but
-        for tests and local development we simply make sure that whatever the
-        model returned can be parsed as JSON.
-        """
-
-        # ``schema`` is not used directly in this placeholder implementation
-        # but keeping it in the signature allows the function to be mocked in
-        # tests and swapped out with a stricter implementation later.
-        _ = schema
-
-        raw_response = self.json(prompt, **kwargs)
-        if isinstance(raw_response, dict):
-            if "text" in raw_response:
-                try:
-                    return json.loads(raw_response["text"])
-                except json.JSONDecodeError as exc:  # pragma: no cover - defensive
-                    raise ValueError("LLM response was not valid JSON") from exc
-            return raw_response
-
-        if isinstance(raw_response, str):
-            try:
-                return json.loads(raw_response)
-            except json.JSONDecodeError as exc:  # pragma: no cover - defensive
-                raise ValueError("LLM response was not valid JSON") from exc
-
-        raise ValueError("LLM response was not a JSON compatible structure")
 
