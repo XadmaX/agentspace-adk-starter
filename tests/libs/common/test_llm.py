@@ -73,14 +73,36 @@ def test_generate_text_returns_model_text(fake_model):
     client = VertexLLM()
     output = client.generate_text("Hi", temperature=0.5, max_tokens=256)
 
-    assert output == "Hello world"
-    assert init_calls == [("demo-project", "europe-west4")]
+    if output != "Hello world":
+        pytest.fail(f"Expected model output 'Hello world', got: {output!r}")
+
+    if init_calls != [("demo-project", "europe-west4")]:
+        pytest.fail(
+            "VertexLLM initialization calls did not match expected project and location"
+        )
+
+    if not model.calls:
+        pytest.fail("Fake model did not record any calls")
 
     call = model.calls[0]
-    assert call["prompt"] == ["Hi"]
-    assert isinstance(call["config"], FakeGenerationConfig)
-    assert call["config"].kwargs["temperature"] == 0.5
-    assert call["config"].kwargs["max_output_tokens"] == 256
+    if call["prompt"] != ["Hi"]:
+        pytest.fail(f"Expected prompt ['Hi'], got: {call['prompt']!r}")
+
+    if not isinstance(call["config"], FakeGenerationConfig):
+        pytest.fail(
+            "Expected generation config to be an instance of FakeGenerationConfig"
+        )
+
+    config_kwargs = call["config"].kwargs
+    if config_kwargs.get("temperature") != 0.5:
+        pytest.fail(
+            "Expected generation config to use temperature=0.5"
+        )
+
+    if config_kwargs.get("max_output_tokens") != 256:
+        pytest.fail(
+            "Expected generation config to use max_output_tokens=256"
+        )
 
 
 def test_generate_json_retries_on_timeout(fake_model):
@@ -91,5 +113,10 @@ def test_generate_json_retries_on_timeout(fake_model):
     client = VertexLLM(max_retries=2, retry_delay=0)
     payload = client.generate_json({"type": "object"}, "Prompt")
 
-    assert payload == {"status": "ok"}
-    assert len(model.calls) == 2
+    if payload != {"status": "ok"}:
+        pytest.fail(f"Expected JSON payload {{'status': 'ok'}}, got: {payload!r}")
+
+    if len(model.calls) != 2:
+        pytest.fail(
+            f"Expected model to be called twice due to retry, got: {len(model.calls)}"
+        )
