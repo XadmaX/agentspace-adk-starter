@@ -1,8 +1,8 @@
-# Как обновлять Codex-хаб
+# Codex Hub Update Checklist
 
-1. Подготовьте изменения: определите, какие разделы требуют правок, и соберите связанные ссылки.
-2. Обновите соответствующие файлы в `docs/hub/`, следуя инструкциям из `AGENTS.md`.
-3. Проверьте консистентность: сверьте задачи, решения и журнал изменений, чтобы исключить противоречия.
-4. Получите ревью коллеги: попросите команду подтвердить точность и актуальность обновлений.
-5. Зафиксируйте изменения в `CHANGELOG.md` с указанием даты и краткого описания.
-6. Синхронизируйте обновлённые сведения с другими разделами документации и релевантными сервисами.
+- **Scope the update.** Identify the sections that need changes and collect the supporting references.
+- **Apply the edits.** Update the relevant files within `docs/hub/` while following the directory's `AGENTS.md` guidance.
+- **Review cross-document consistency.** Confirm the latest updates align across `TASKS.md`, `DECISIONS.md`, and `CHANGELOG.md`, adjusting as needed.
+- **Request a peer review.** Ask a teammate to validate accuracy, clarity, and current relevance.
+- **Log the release.** Record the change in `CHANGELOG.md` with an ISO date and a concise summary.
+- **Propagate the updates.** Sync the refreshed information to related documentation sets and dependent services.
